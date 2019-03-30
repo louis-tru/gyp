@@ -565,6 +565,9 @@ class XcodeSettings(object):
     if self._Test('GCC_CW_ASM_SYNTAX', 'YES', default='YES'):
       cflags.append('-fasm-blocks')
 
+    if self._Test('ENABLE_BITCODE', 'YES', default='YES'):
+      cflags.append('-fembed-bitcode')
+      
     if 'GCC_DYNAMIC_NO_PIC' in self._Settings():
       if self._Settings()['GCC_DYNAMIC_NO_PIC'] == 'YES':
         cflags.append('-mdynamic-no-pic')
@@ -1405,19 +1408,24 @@ def XcodeVersion():
   except:
     version = CLTVersion()
     if version:
-      version = re.match(r'(\d\.\d\.?\d*)', version).groups()[0]
+      version = re.match(r'(\d+\.\d+\.?\d*)', version).groups()[0]
     else:
       raise GypError("No Xcode or CLT version detected!")
     # The CLT has no build information, so we return an empty string.
     version_list = [version, '']
+
   version = version_list[0]
   build = version_list[-1]
   # Be careful to convert "4.2" to "0420":
-  version = version.split()[-1].replace('.', '')
-  version = (version + '0' * (3 - len(version))).zfill(4)
+  version_list = version.split()[-1].split('.')
+  if len(version_list) < 2:
+    version_list.append('00');
+  version = version_list[0].zfill(2) + version_list[1]
+  version += ('0' if len(version_list[1]) < 2 else '')
   if build:
     build = build.split()[-1]
   XCODE_VERSION_CACHE = (version, build)
+
   return XCODE_VERSION_CACHE
 
 

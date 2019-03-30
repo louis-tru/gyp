@@ -63,6 +63,7 @@ generator_default_variables = {
 # The Xcode-specific sections that hold paths.
 generator_additional_path_sections = [
   'mac_bundle_resources',
+  'mac_bundle_frameworks',
   'mac_framework_headers',
   'mac_framework_private_headers',
   # 'mac_framework_dirs', input already handles _dirs endings.
@@ -76,6 +77,7 @@ generator_additional_non_configuration_keys = [
   'ios_watchkit_extension',
   'mac_bundle',
   'mac_bundle_resources',
+  'mac_bundle_frameworks',
   'mac_framework_headers',
   'mac_framework_private_headers',
   'mac_xctest_bundle',
@@ -86,6 +88,7 @@ generator_additional_non_configuration_keys = [
 # We want to let any rules apply to files that are resources also.
 generator_extra_sources_for_rules = [
   'mac_bundle_resources',
+  'mac_bundle_frameworks',
   'mac_framework_headers',
   'mac_framework_private_headers',
 ]
@@ -527,6 +530,10 @@ def AddHeaderToTarget(header, pbxp, xct, is_public):
   # where it's used.
   settings = '{ATTRIBUTES = (%s, ); }' % ('Private', 'Public')[is_public]
   xct.HeadersPhase().AddFile(header, settings)
+
+
+def AddBundleFrameworkToTarget(framework, pbxp, xct) :
+  xct.EmbedFrameworksPhase().AddFile(framework, '{ ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }')
 
 
 _xcode_variable_re = re.compile(r'(\$\((.*?)\))')
@@ -1156,6 +1163,9 @@ exit 1
 
       for header in spec.get('mac_framework_private_headers', []):
         AddHeaderToTarget(header, pbxp, xct, False)
+
+      for framework in spec.get('mac_bundle_frameworks', []):
+       AddBundleFrameworkToTarget(framework, pbxp, xct)
 
     # Add "mac_framework_headers". These can be valid for both frameworks
     # and static libraries.

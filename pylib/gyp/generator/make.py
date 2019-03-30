@@ -575,6 +575,8 @@ header = """\
 COMPILABLE_EXTENSIONS = {
   '.c': 'cc',
   '.cc': 'cxx',
+  '.mm': 'cxx',
+  '.m': 'cc',
   '.cpp': 'cxx',
   '.cxx': 'cxx',
   '.s': 'cc',

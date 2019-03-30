@@ -1521,6 +1521,7 @@ class PBXFileReference(XCFileLikeElement, XCContainerPortal, XCRemoteObject):
         'r':           'sourcecode.rez',
         'rez':         'sourcecode.rez',
         's':           'sourcecode.asm',
+        'asm':          'sourcecode.asm',
         'storyboard':  'file.storyboard',
         'strings':     'text.plist.strings',
         'swift':       'sourcecode.swift',
@@ -1531,6 +1532,7 @@ class PBXFileReference(XCFileLikeElement, XCContainerPortal, XCRemoteObject):
         'xcdatamodeld':'wrapper.xcdatamodeld',
         'xib':         'file.xib',
         'y':           'sourcecode.yacc',
+        'tbd':         'sourcecode.text-based-dylib-definition',
       }
 
       prop_map = {
@@ -2003,6 +2005,10 @@ class PBXCopyFilesBuildPhase(XCBuildPhase):
     return 'CopyFiles'
 
   def FileGroup(self, path):
+    # dstSubfolderSpec == 10 is Embed Frameworks
+    if 'dstSubfolderSpec' in self._properties and self._properties['dstSubfolderSpec'] == 10:
+      return (self.PBXProjectAncestor().FrameworksGroup(), False)
+
     return self.PBXProjectAncestor().RootGroupForPath(path)
 
   def SetDestination(self, path):
@@ -2529,6 +2535,14 @@ class PBXNativeTarget(XCTarget):
       self.AppendProperty('buildPhases', frameworks_phase)
 
     return frameworks_phase
+
+  def EmbedFrameworksPhase(self):
+    embed_frameworks_phase = self.GetBuildPhaseByType(PBXCopyFilesBuildPhase)
+    if embed_frameworks_phase is None:
+      embed_frameworks_phase = PBXCopyFilesBuildPhase({ 'name': 'Embed Frameworks', 'dstPath': '', 'dstSubfolderSpec' : 10 })
+      self.AppendProperty('buildPhases', embed_frameworks_phase)
+
+    return embed_frameworks_phase
 
   def AddDependency(self, other):
     # super
