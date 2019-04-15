@@ -1498,7 +1498,10 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
           if any(dep.endswith('.so') or '.so.' in dep for dep in deps):
             # We want to get the literal string "$ORIGIN" into the link command,
             # so we need lots of escaping.
-            ldflags.append(r'-Wl,-rpath=\$$ORIGIN/lib.%s/' % self.toolset)
+            if self.type in ('shared_library', 'loadable_module'):
+              ldflags.append(r'-Wl,-rpath=\$$ORIGIN/')
+            else:
+              ldflags.append(r'-Wl,-rpath=\$$ORIGIN/lib.%s/' % self.toolset)
             ldflags.append(r'-Wl,-rpath-link=\$(builddir)/lib.%s/' %
                            self.toolset)
         library_dirs = config.get('library_dirs', [])
