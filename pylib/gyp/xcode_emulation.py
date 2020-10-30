@@ -118,6 +118,7 @@ def GetXcodeArchsDefault():
   if XCODE_ARCHS_DEFAULT_CACHE:
     return XCODE_ARCHS_DEFAULT_CACHE
   xcode_version, _ = XcodeVersion()
+  # print('xcode_version', xcode_version)
   if xcode_version < '0500':
     XCODE_ARCHS_DEFAULT_CACHE = XcodeArchsDefault(
         '$(ARCHS_STANDARD)',
@@ -132,14 +133,27 @@ def GetXcodeArchsDefault():
         XcodeArchsVariableMapping(
             ['armv7', 'armv7s'],
             ['armv7', 'armv7s', 'arm64']))
-  else:
+  elif xcode_version < '1000':
     XCODE_ARCHS_DEFAULT_CACHE = XcodeArchsDefault(
-        '$(ARCHS_STANDARD)',
-        XcodeArchsVariableMapping(['x86_64'], ['x86_64']),
-        XcodeArchsVariableMapping(['i386', 'x86_64'], ['i386', 'x86_64']),
-        XcodeArchsVariableMapping(
-            ['armv7', 'armv7s', 'arm64'],
-            ['armv7', 'armv7s', 'arm64']))
+      '$(ARCHS_STANDARD)',
+      XcodeArchsVariableMapping(['x86_64'], ['x86_64']),
+      XcodeArchsVariableMapping(['i386', 'x86_64'], ['i386', 'x86_64']),
+      XcodeArchsVariableMapping(
+          ['armv7', 'armv7s', 'arm64'],
+          ['armv7', 'armv7s', 'arm64']))
+  elif xcode_version < '1200':
+    XCODE_ARCHS_DEFAULT_CACHE = XcodeArchsDefault(
+      '$(ARCHS_STANDARD)',
+      XcodeArchsVariableMapping(['x86_64'], ['x86_64']),
+      XcodeArchsVariableMapping(['x86_64'], ['x86_64']),
+      XcodeArchsVariableMapping(['arm64'], ['arm64']))
+  else:
+    # def __init__(self, default, mac, iphonesimulator, iphoneos):
+    XCODE_ARCHS_DEFAULT_CACHE = XcodeArchsDefault(
+      '$(ARCHS_STANDARD)',
+      XcodeArchsVariableMapping(['x86_64'], ['x86_64']),
+      XcodeArchsVariableMapping(['x86_64', 'arm64'], ['x86_64', 'arm64']),
+      XcodeArchsVariableMapping(['arm64'], ['arm64']))
   return XCODE_ARCHS_DEFAULT_CACHE
 
 
@@ -486,6 +500,8 @@ class XcodeSettings(object):
     """Returns the architectures this target should be built for."""
     config_settings = self.xcode_settings[configname]
     xcode_archs_default = GetXcodeArchsDefault()
+    # print('xcode_archs_default', xcode_archs_default)
+    # print('config_settings', config_settings)
     return xcode_archs_default.ActiveArchs(
         config_settings.get('ARCHS'),
         config_settings.get('VALID_ARCHS'),
@@ -632,6 +648,7 @@ class XcodeSettings(object):
       assert self.configname
       archs = self.GetActiveArchs(self.configname)
     if len(archs) != 1:
+      print('AAAAAAAAAAAAAAAA', archs, self.configname)
       # TODO: Supporting fat binaries will be annoying.
       self._WarnUnimplemented('ARCHS')
       archs = ['i386']
