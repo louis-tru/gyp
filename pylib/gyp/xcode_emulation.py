@@ -648,7 +648,7 @@ class XcodeSettings(object):
       assert self.configname
       archs = self.GetActiveArchs(self.configname)
     if len(archs) != 1:
-      print('AAAAAAAAAAAAAAAA', archs, self.configname)
+      # print('AAAAAAAAAAAAAAAA', archs, self.configname)
       # TODO: Supporting fat binaries will be annoying.
       self._WarnUnimplemented('ARCHS')
       archs = ['i386']
