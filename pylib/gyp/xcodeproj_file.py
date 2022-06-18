@@ -143,6 +143,8 @@ import re
 import struct
 import sys
 
+from functools import cmp_to_key
+
 # hashlib is supplied as of Python 2.5 as the replacement interface for sha
 # and other secure hashes.  In 2.6, sha is deprecated.  Import hashlib if
 # available, avoiding a deprecation warning under 2.6.  Import sha otherwise,
@@ -430,7 +432,7 @@ class XCObject(object):
       """
 
       hash.update(struct.pack('>i', len(data)))
-      hash.update(data)
+      hash.update(data.encode('utf8'))
 
     if seed_hash is None:
       seed_hash = _new_sha1()
@@ -1417,7 +1419,7 @@ class PBXGroup(XCHierarchicalElement):
 
   def SortGroup(self):
     self._properties['children'] = \
-        sorted(self._properties['children'], cmp=lambda x,y: x.Compare(y))
+        sorted(self._properties['children'], key=cmp_to_key(lambda x,y: x.Compare(y)))
 
     # Recurse.
     for child in self._properties['children']:
@@ -2735,7 +2737,7 @@ class PBXProject(XCContainerPortal):
     # according to their defined order.
     self._properties['mainGroup']._properties['children'] = \
         sorted(self._properties['mainGroup']._properties['children'],
-               cmp=lambda x,y: x.CompareRootGroup(y))
+               key=cmp_to_key(lambda x,y: x.CompareRootGroup(y)))
 
     # Sort everything else by putting group before files, and going
     # alphabetically by name within sections of groups and files.  SortGroup
@@ -2826,9 +2828,8 @@ class PBXProject(XCContainerPortal):
 
       # Xcode seems to sort this list case-insensitively
       self._properties['projectReferences'] = \
-          sorted(self._properties['projectReferences'], cmp=lambda x,y:
-                 cmp(x['ProjectRef'].Name().lower(),
-                     y['ProjectRef'].Name().lower()))
+          sorted(self._properties['projectReferences'], key=cmp_to_key(lambda x,y:
+                 cmp(x['ProjectRef'].Name().lower(), y['ProjectRef'].Name().lower())))
     else:
       # The link already exists.  Pull out the relevnt data.
       project_ref_dict = self._other_pbxprojects[other_pbxproject]
@@ -2952,7 +2953,7 @@ class PBXProject(XCContainerPortal):
       product_group = ref_dict['ProductGroup']
       product_group._properties['children'] = sorted(
           product_group._properties['children'],
-          cmp=lambda x, y, rp=remote_products: CompareProducts(x, y, rp))
+          key=cmp_to_key(lambda x, y, rp=remote_products: CompareProducts(x, y, rp)))
 
 
 class XCProjectFile(XCObject):
@@ -2983,8 +2984,9 @@ class XCProjectFile(XCObject):
       self._XCPrint(file, 0, '{ ')
     else:
       self._XCPrint(file, 0, '{\n')
-    for property, value in sorted(self._properties.iteritems(),
-                                  cmp=lambda x, y: cmp(x, y)):
+
+    for property, value in sorted(self._properties.items(),
+                                  key=cmp_to_key(lambda x, y: cmp(x, y))):
       if property == 'objects':
         self._PrintObjects(file)
       else:
@@ -3011,7 +3013,7 @@ class XCProjectFile(XCObject):
       self._XCPrint(file, 0, '\n')
       self._XCPrint(file, 0, '/* Begin ' + class_name + ' section */\n')
       for object in sorted(objects_by_class[class_name],
-                           cmp=lambda x, y: cmp(x.id, y.id)):
+                           key=cmp_to_key(lambda x, y: cmp(x.id, y.id))):
         object.Print(file)
       self._XCPrint(file, 0, '/* End ' + class_name + ' section */\n')
 

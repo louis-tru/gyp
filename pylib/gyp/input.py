@@ -1032,6 +1032,7 @@ def EvalCondition(condition, conditions_key, phase, variables, build_file):
     raise GypError(conditions_key + ' ' + condition[0] +
                    ' must be at least length 2, not ' + str(len(condition)))
 
+  # print("---", build_file, condition)
   i = 0
   result = None
   while i < len(condition):
@@ -1163,7 +1164,7 @@ def LoadVariablesFromVariablesDict(variables, the_dict, the_dict_key):
       if variable_name in variables:
         # If the variable is already set, don't set it.
         continue
-      if the_dict_key is 'variables' and variable_name in the_dict:
+      if the_dict_key == 'variables' and variable_name in the_dict:
         # If the variable is set without a % in the_dict, and the_dict is a
         # variables dict (making |variables| a varaibles sub-dict of a
         # variables dict), use the_dict's definition.
