@@ -15,8 +15,10 @@ fi
 if [ ! "$PYTHON" ]; then
 	if [ `which python2.7` ]; then
 		PYTHON=`which python2.7`
+	elif [ `which python2` ]; then
+		PYTHON=`which python2`
 	else
-		PYTHON=python
+		PYTHON=`which python`
 	fi
 fi
 
